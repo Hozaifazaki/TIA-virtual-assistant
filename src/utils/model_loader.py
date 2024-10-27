@@ -1,6 +1,8 @@
-from ctransformers import AutoModelForCausalLM, AutoTokenizer
-
+import os
 from utils.path_util import PathUtil
+from configs.config import Config
+from haystack_integrations.components.generators.llama_cpp import LlamaCppGenerator
+
 
 class ModelLoader:
     _initialized = False
@@ -8,7 +10,6 @@ class ModelLoader:
     def __init__(self):
         if not self._initialized:
             self.llm_model = None
-            self.llm_tokenizer = None
 
             # Load model
             self.load_models()
@@ -16,7 +17,10 @@ class ModelLoader:
 
     def load_models(self):
         if not self.llm_model:
-            self.llm_model = AutoModelForCausalLM.from_pretrained(model_path_or_repo_id=PathUtil.MODEL_PATH,
-                                                                  model_file=PathUtil.GGUF_FILE_NAME,
-                                                                  gpu_layers=0)
-            self.llm_tokenizer = AutoTokenizer(self.llm_model)
+            self.llm_model = LlamaCppGenerator(
+                                model=os.path.join(PathUtil.MODEL_DIR_PATH, PathUtil.GGUF_FILE_NAME),
+                                # n_ctx=512,
+                                # n_batch=128,
+                                # model_kwargs={"n_gpu_layers": -1},
+                                generation_kwargs=Config.GENERATION_ARGS,
+                            )
