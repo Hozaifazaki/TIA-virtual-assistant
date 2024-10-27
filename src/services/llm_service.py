@@ -1,11 +1,11 @@
-
 from models.data_models import Prompts
 
-class AIAssistant:
-    def __init__(self, user_prompt, webpage_content, tokenizer) -> None:
+class LLMService:
+    def __init__(self, model, tokenizer, user_prompt, webpage_content) -> None:
+        self.model = model
+        self.tokenizer = tokenizer
         self.user_prompt = user_prompt
         self.webpage_content = webpage_content
-        self.tokenizer = tokenizer
 
     def construct_prompt_template(self):
         messages = [
@@ -20,6 +20,7 @@ class AIAssistant:
         ]
         prompt_template = self.tokenizer.apply_chat_tempalte(messages, add_generation_tokens=True)
         return prompt_template
-    
-    def generate_response(self):
-        return f"Your prompt is {self.user_prompt}"
+
+    def generate_response(self, prompt: str):
+        response = self.model(prompt)
+        return response
