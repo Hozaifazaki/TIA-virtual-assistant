@@ -1,0 +1,19 @@
+{
+    "manifest_version": 3,
+    "name": "Multimodal Chatbot",
+    "version": "1.0",
+    "description": "Enables AI to interact with different webpage content (Text, Image, and Audio) and assist.",
+    "permissions": ["activeTab", "scripting", "storage"],
+    "action": {
+      "default_popup": "frontend/popup.html"
+    },
+    "background": {
+      "service_worker": "backend/background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["contetn_scrapping.js"]
+      }
+    ]
+}

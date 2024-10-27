@@ -1,7 +1,7 @@
 import os
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from models.chat_models import ChatInput, ChatResponse
+from schemas.chat_models import ChatInput, ChatResponse
 from services.llm_service import LLMService
 from configs.config import Config
 from utils.model_loader import ModelLoader
@@ -35,7 +35,7 @@ async def get_response(request: ChatInput):
     try:
         print(request.user_prompt, request.webpage_content)
         llm_model.warm_up()
-        llm_assistant = LLMService(llm_model, request.user_prompt, request.webpage_content)
+        llm_assistant = LLMService(llm_model, request["user_prompt"], None)
 
         prompt = llm_assistant.construct_prompt_template()
         assistant_response = llm_assistant.generate_response(prompt)
@@ -43,5 +43,23 @@ async def get_response(request: ChatInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# To test without server
+# def main(request: ChatInput):
+#     try:
+#         # print(request.user_prompt, request.webpage_content)
+#         llm_model.warm_up()
+#         llm_assistant = LLMService(llm_model, request["user_prompt"], None)
+
+#         prompt = llm_assistant.construct_prompt_template()
+#         assistant_response = llm_assistant.generate_response(prompt)
+#         print(assistant_response)
+#         # return ChatResponse(assistant_response=assistant_response)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="localhost", port=8000)
+#    main({"user_prompt": "What is the main topic of this page?", "page_content": "This is the content of the webpage. It discusses various topics related to artificial intelligence and machine learning."}) 
+"""
+curl -X POST http://localhost:8000/ai-assistant -H "Content-Type: application/json" -d '{"question": "What is the main topic of this page?", "page_content": "This is the content of the webpage. It discusses various topics related to artificial intelligence and machine learning."}'
+"""

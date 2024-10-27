@@ -1,9 +1,8 @@
-from models.prompts import Prompts
+from schemas.prompts import Prompts
 
 class LLMService:
-    def __init__(self, model, tokenizer, user_prompt, webpage_content) -> None:
+    def __init__(self, model, user_prompt, webpage_content) -> None:
         self.model = model
-        self.tokenizer = tokenizer
         self.user_prompt = user_prompt
         self.webpage_content = webpage_content
 

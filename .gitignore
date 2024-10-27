@@ -1,2 +1,9 @@
+# Ignore compiled Python files
 __pycache__/
-models/
+*.py[cod]
+
+# Ignore model binaries
+models/Phi_3_mini_4k_instruct_gguf/*
+
+# Ignore virtual environment
+venv/

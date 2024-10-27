@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hereiz chrome extension</title>
+    <link rel="stylesheet" href="popup.css">
+    <script src="libs/marked.min.js"></script>
+    <script src="popup.js" defer></script>
+</head>
+<body>
+    <h1>AI Assistant</h1>
+    <div id="chatContainer"> 
+        <div id="chatHistory"></div>
+        <div id="inputContainer">
+            <textarea id="userInput" rows="1" placeholder="Type your message..."></textarea>
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+    <div id="errorMessage"></div>
+</body>
+</html>
