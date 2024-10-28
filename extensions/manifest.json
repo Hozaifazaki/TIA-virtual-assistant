@@ -13,7 +13,7 @@
     "content_scripts": [
       {
         "matches": ["<all_urls>"],
-        "js": ["contetn_scrapping.js"]
+        "js": ["content_scrapping.js"]
       }
     ]
 }

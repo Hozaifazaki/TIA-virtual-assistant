@@ -27,17 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
           if (chrome.runtime.lastError) {
             console.error('Error getting page content:', chrome.runtime.lastError);
             errorMessage.textContent = 'Failed to get page content. Please refresh the page and try again.';
+            addMessageToChat('ai', errorMessage.textContent);
             return;
           }
 
-          fetch('http://localhost:8000/chat-hereiz', {
+          fetch('http://localhost:8000/ai-assistant', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              question: message,
-              page_content: pageContent
+              user_prompt: message,
+              webpage_content: pageContent
             })
           })
           .then(response => {
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
           })
           .then(data => {
-            addMessageToChat('ai', data.reply);
+            addMessageToChat('ai', data.assistant_response);
           })
           .catch(error => {
             console.error('Error:', error);
@@ -62,13 +63,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function addMessageToChat(sender, text) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message', `${sender}-message`);
-    
+
     if (sender === 'ai') {
       messageElement.innerHTML = marked.parse(text);
     } else {
       messageElement.textContent = text;
     }
-    
+
     chatHistory.appendChild(messageElement);
     chatHistory.scrollTop = chatHistory.scrollHeight;
   }

@@ -1,13 +1,13 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "callLLM") {
-    fetch('http://localhost:8000/ai-assistant', {  
+    fetch('http://localhost:8000/ai-assistant', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        question: request.input,
-        page_content: request.pageContent
+        user_prompt: request.input,
+        webpage_content: request.pageContent
       }),
     })
     .then(response => response.json())
