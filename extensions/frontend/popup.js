@@ -2,9 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sendBtn = document.getElementById('sendBtn');
   const userInput = document.getElementById('userInput');
   const chatHistory = document.getElementById('chatHistory');
-  const errorMessage = document.getElementById('errorMessage');
 
-  if (sendBtn && userInput && chatHistory && errorMessage) {
+  if (sendBtn && userInput && chatHistory) {
     sendBtn.addEventListener('click', sendMessage);
     userInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -26,8 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.tabs.sendMessage(tabs[0].id, {action: "getPageContent"}, (pageContent) => {
           if (chrome.runtime.lastError) {
             console.error('Error getting page content:', chrome.runtime.lastError);
-            errorMessage.textContent = 'Failed to get page content. Please refresh the page and try again.';
-            addMessageToChat('ai', errorMessage.textContent);
+            addMessageToChat('ai', 'Failed to get page content. Please refresh the page and try again.');
             return;
           }
 
@@ -52,8 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
           })
           .catch(error => {
             console.error('Error:', error);
-            errorMessage.textContent = `An error occurred: ${error.message}. Please try again.`;
-            addMessageToChat('ai', 'Sorry, I encountered an error. Please try again.');
+            addMessageToChat('ai', `An error occurred: ${error.message}. Please try again.`);
           });
         });
       });

@@ -1,8 +1,9 @@
 # transformers==4.46.0
 # torch==2.5.0
+optimum==1.23.2
+onnx
+onnxruntime
 huggingface-hub==0.23.5
-haystack==0.42
-# llama-cpp-haystack==0.4.1
 pydantic==2.9.2
 fastapi==0.115.3
 uvicorn==0.32.0

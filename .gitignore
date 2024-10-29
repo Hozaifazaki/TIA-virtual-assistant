@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 
 # Ignore model binaries
-models/Phi_3_mini_4k_instruct_gguf/*
+models/*
 
 # Ignore virtual environment
 venv/

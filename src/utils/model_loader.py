@@ -1,7 +1,7 @@
 import os
 from utils.path_util import PathUtil
 from configs.config import Config
-from haystack_integrations.components.generators.llama_cpp import LlamaCppGenerator
+from optimum.onnxruntime import ORTModelForCausalLM
 
 
 class ModelLoader:
@@ -17,10 +17,12 @@ class ModelLoader:
 
     def load_models(self):
         if not self.llm_model:
-            self.llm_model = LlamaCppGenerator(
-                                model=os.path.join(PathUtil.MODEL_DIR_PATH, PathUtil.GGUF_FILE_NAME),
-                                # n_ctx=512,
-                                # n_batch=128,
-                                # model_kwargs={"n_gpu_layers": -1},
-                                generation_kwargs=Config.GENERATION_ARGS,
-                            )
+            self.llm_model = ORTModelForCausalLM.from_pretrained(
+                PathUtil.MODEL_DIR_PATH,
+                decoder_file_name="phi3-mini-128k-instruct-cpu-int4-rtn-block-32-acc-level-4.onnx",
+                decoder_with_past_file_name="phi3-mini-128k-instruct-cpu-int4-rtn-block-32-acc-level-4.onnx",
+                use_merged=True,
+                provider="CPUExecutionProvider",
+                trust_remote_code=True,
+                local_files_only=True,
+            )
