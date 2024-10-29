@@ -39,13 +39,16 @@ async def root():
 @app.post("/ai-assistant")
 async def get_response(request: ChatInput):
     try:
-        print(request.user_prompt, request.webpage_content)
+        # print(request.user_prompt, request.webpage_content)
         llm_model.warm_up()
-        llm_assistant = LLMService(llm_model, request["user_prompt"], None)
+        llm_assistant = LLMService(llm_model, request.user_prompt, request.webpage_content)
 
         prompt = llm_assistant.construct_prompt_template()
         assistant_response = llm_assistant.generate_response(prompt)
-        return ChatResponse(assistant_response=assistant_response)
+        print('-'*10)
+        print(assistant_response["replies"])
+        print('-'*10)
+        return ChatResponse(assistant_response=assistant_response["replies"][0])
         # For echo test
         # return ChatResponse(assistant_response=f"{request.user_prompt}, {request.webpage_content}")
     except Exception as e:
