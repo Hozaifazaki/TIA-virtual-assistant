@@ -1,8 +1,7 @@
 import os
 from utils.path_util import PathUtil
-from configs.config import Config
 from optimum.onnxruntime import ORTModelForCausalLM
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, TextIteratorStreamer
 
 class ModelLoader:
     _initialized = False
@@ -12,6 +11,7 @@ class ModelLoader:
             # Text Generation
             self.llm_model = None
             self.llm_tokenizer = None
+            self.llm_streamer = None
 
             # Load model
             self.load_models()
@@ -31,3 +31,6 @@ class ModelLoader:
                 local_files_only=True
             )
             self.llm_tokenizer = AutoTokenizer.from_pretrained(PathUtil.MODEL_DIR_PATH)
+
+            # Load streamer as an iterator
+            self.llm_streamer = TextIteratorStreamer(self.llm_tokenizer, skip_prompt=True, skip_special_tokens=True)

@@ -1,6 +1,8 @@
 import os
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
+
 from schemas.chat_models import ChatInput, ChatResponse
 from services.llm_service import LLMService
 from configs.config import Config
@@ -21,6 +23,7 @@ if Config.ONLINE_DOWNLOAD:
 model_loader = ModelLoader()
 llm_model = model_loader.llm_model
 llm_tokenizer = model_loader.llm_tokenizer
+llm_streamer = model_loader.llm_streamer
 
 # Create the server
 ## This initializes the FastAPI app, which will handle incoming HTTP requests.
@@ -41,16 +44,21 @@ async def root():
 async def get_response(request: ChatInput):
     try:
         # print(request.user_prompt, request.webpage_content)
-        llm_assistant = LLMService(llm_model, llm_tokenizer, request.user_prompt, request.webpage_content)
+        llm_assistant = LLMService(llm_model,
+                                   llm_tokenizer,
+                                   llm_streamer,
+                                   request.user_prompt,
+                                   request.webpage_content)
 
+        # Construct the prompt template
         prompt = llm_assistant.construct_prompt_template()
-        assistant_response = llm_assistant.generate_response(prompt)
-        print('-'*10)
-        print(assistant_response)
-        print('-'*10)
-        return ChatResponse(assistant_response=assistant_response)
-        # For echo test
-        # return ChatResponse(assistant_response=f"{request.user_prompt}, {request.webpage_content}")
+
+        # Start streaming response
+        return StreamingResponse(llm_assistant.generate_streaming_response(prompt), media_type="text/event-stream")
+
+        ## For single response
+        # assistant_response = llm_assistant.generate_response(prompt)
+        # return ChatResponse(assistant_response=assistant_response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -69,7 +77,7 @@ async def get_response(request: ChatInput):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)
-#    main({"user_prompt": "What is the main topic of this page?", "webpage_content": "This is the content of the webpage. It discusses various topics related to artificial intelligence and machine learning."})
-"""
-curl -X POST http://0.0.0.0:8000/ai-assistant -H "Content-Type: application/json" -d '{"question": "What is the main topic of this page?", "page_content": "This is the content of the webpage. It discusses various topics related to artificial intelligence and machine learning."}'
-"""
+    ## To debug
+    # uvicorn.run("main:app", host="localhost", port=8000, reload=True, log_level="debug")
+
+    # main({"user_prompt": "What is the main topic of this page?", "webpage_content": "This is the content of the webpage. It discusses various topics related to artificial intelligence and machine learning."})

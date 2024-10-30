@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
           }
 
+          const aiMessageElement = addMessageToChat('ai', '');
+          let accumulatedResponse = '';
+
           fetch('http://localhost:8000/ai-assistant', {
             method: 'POST',
             headers: {
@@ -43,10 +46,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.json();
-          })
-          .then(data => {
-            addMessageToChat('ai', data.assistant_response);
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            function readStream() {
+              return reader.read().then(({ done, value }) => {
+                if (done) {
+                  return;
+                }
+                const chunk = decoder.decode(value, { stream: true });
+                accumulatedResponse += chunk;
+                aiMessageElement.innerHTML = marked.parse(accumulatedResponse);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                return readStream();
+              });
+            }
+
+            return readStream();
           })
           .catch(error => {
             console.error('Error:', error);
@@ -69,5 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chatHistory.appendChild(messageElement);
     chatHistory.scrollTop = chatHistory.scrollHeight;
+    return messageElement;
   }
 });

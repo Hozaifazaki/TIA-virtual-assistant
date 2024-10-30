@@ -3,5 +3,5 @@ class Prompts:
 
     DEAFUALT_RESPONSE = "How can I help you!"
 
-    PROMPT_TEMPLATE = """<|system|>{system_prompt}<|end|><|user|>{user_prompt}<|end|><assistant>"""
-    
+    PROMPT_TEMPLATE = """<|system|>\n{system_prompt}<|end|>\n<|user|>\n{user_prompt}<|end|>\n<assistant>\n"""
+
