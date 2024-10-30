@@ -1,9 +1,9 @@
 # torch==2.5.0
-transformers==4.46.0
-optimum==1.23.2
-onnx==1.17.0
-onnxruntime==1.19.2
-huggingface-hub==0.23.5
-pydantic==2.9.2
 fastapi==0.115.3
 uvicorn==0.32.0
+pydantic==2.9.2
+huggingface-hub==0.23.5
+onnx==1.17.0
+onnxruntime==1.19.2
+optimum[onnxruntime]==1.23.2
+transformers==4.45.0

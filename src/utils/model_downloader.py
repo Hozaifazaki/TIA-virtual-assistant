@@ -1,13 +1,14 @@
 import os
-import shutil
 import time
+import shutil
 
 from huggingface_hub import snapshot_download #, utils
-from utils.path_util import PathUtil
+
+from utils.path_manager import PathManager
 
 
 class ModelDownloader:
-    def __init__(self):
+    def __init__(self) -> None:
         # Initialize model paths
         self.initialize_model_paths()
 
@@ -17,20 +18,15 @@ class ModelDownloader:
         # Start the model download process
         self.start_download()
 
-    def initialize_model_paths(self):
+    def initialize_model_paths(self) -> None:
         """Initializes the paths for model repository, directory, name, and cache.
-
-        Paths:
-            - `onnx_generator_cpu_model_path`: Path to the CPU version of the model.
-            - `onnx_model_cpu_repository`: Model repository for the CPU version on Hugging Face.
-            - `model_cache_cpu_dir`: Path to the user cache for the CPU model.
         """
-        self.model_repository: str = PathUtil.MODEL_REPO
-        self.model_dir_path: str = PathUtil.MODEL_DIR_PATH
-        self.target_file_name: str = PathUtil.TARGET_FILE_NAME
-        self.model_name: str = os.path.basename(PathUtil.TARGET_FILE_NAME)
-        self.model_cache_dir: str = PathUtil.MODEL_CACHE_DIR
-        self.revision_id: str = PathUtil.REVISION_ID
+        self.model_repository: str = PathManager.MODEL_REPO
+        self.model_dir_path: str = PathManager.MODEL_DIR_PATH
+        self.target_file_name: str = PathManager.TARGET_FILE_NAME
+        self.model_name: str = os.path.basename(PathManager.TARGET_FILE_NAME)
+        self.model_cache_dir: str = PathManager.MODEL_CACHE_DIR
+        self.revision_id: str = PathManager.REVISION_ID
         self.model_snapshot_dir: str = os.path.join(self.model_cache_dir, "snapshots")
 
     def start_download(self) -> None:
@@ -44,14 +40,9 @@ class ModelDownloader:
 
         - Iterates through the folders within the snapshots directory.
         - Deletes any folder that does not contain the current revision ID.
-
-        Args:
-            self: The instance of the class containing this method.
         """
         # Iterate through the folders in the snapshots directory
         for snapshot in os.listdir(self.model_snapshot_dir):
-            # Check if the current revision ID is not in the folder name
-            print(snapshot)
             if snapshot != self.revision_id:
                 # Remove the folder
                 shutil.rmtree(os.path.join(self.model_snapshot_dir, snapshot), ignore_errors=True)
@@ -71,42 +62,30 @@ class ModelDownloader:
             self.remove_old_revisions()
 
         # Download the model to the temporary directory
-        # `allow_patterns`: is used to download a specific folder from huggingface repository of the model
         snapshot_download(repo_id=self.model_repository, allow_patterns=[f"{self.target_file_name}/*"], revision=self.revision_id)
 
         # Define the source directory for the relevant model files in user cache
         src_dir = os.path.join(self.model_snapshot_dir, self.revision_id, self.target_file_name)
 
         # Move the relevant model files from user cache folder to the models directory in the project
-        # if not exist in the models directory
         if os.path.exists(src_dir):
             os.makedirs(self.model_dir_path, exist_ok=True)
             shutil.copytree(src_dir, self.model_dir_path, dirs_exist_ok=True)
 
     def download_model_with_retries(self) -> None:
         """Attempts to download the model with retries upon failure.
-
-        - Sets a retry delay 10 seconds.
-        - Attempts to download the model.
-        - Prints a success message upon successful download.
-        - If an exception occurs:
-            - Prints an error message and retries upon failure.
-            - Removes the model's folder and delays for some time before retrying.
         """
         retry_delay: int = 10
         while True:
             try:
-                # Attempt to download the model
                 self.download_model()
-                # Print success message upon successful download
                 print("Installation has been completed successfully.\n")
                 return
             except Exception as exc:
-                # Print an error message and retry upon failure
                 print(f"\nAttempt failed: {exc}")
                 print(f"\nRetrying in {retry_delay} seconds...\n")
 
                 # Remove model's folder
                 shutil.rmtree(self.model_cache_dir, ignore_errors=True)
-                # Delay for some time
+
                 time.sleep(retry_delay)

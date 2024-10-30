@@ -1,35 +1,50 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const sendBtn = document.getElementById('sendBtn');
-  const userInput = document.getElementById('userInput');
-  const chatHistory = document.getElementById('chatHistory');
+  const sendButton = document.getElementById('sendBtn');
+  const inputTextArea = document.getElementById('userInput');
+  const chatArea = document.getElementById('chatHistory');
 
-  if (sendBtn && userInput && chatHistory) {
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', (e) => {
+  if (sendButton && inputTextArea && chatArea) {
+    // Add an event listener for send button
+    sendButton.addEventListener('click', sendMessage);
+
+    // Add an event listener for input text area
+    inputTextArea.addEventListener('keypress', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
       }
     });
-  } else {
+  } 
+  else {
     console.error('Required elements not found');
   }
 
   function sendMessage() {
-    const message = userInput.value.trim();
-    if (message) {
-      addMessageToChat('user', message);
-      userInput.value = '';
-
+    // Define new variable 
+    const userMessage = inputTextArea.value.trim();
+    
+    if (userMessage) {
+      // Add the user message to the chat area
+      addMessageToChat('user', userMessage);
+      
+      // Clear and renitialize the input text area 
+      inputTextArea.value = '';
+      
       chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
         chrome.tabs.sendMessage(tabs[0].id, {action: "getPageContent"}, (pageContent) => {
           if (chrome.runtime.lastError) {
             console.error('Error getting page content:', chrome.runtime.lastError);
-            addMessageToChat('ai', 'Failed to get page content. Please refresh the page and try again.');
-            return;
+            addMessageToChat('ai', 'Failed to get page content. Continue without scrapping');
+          }
+          
+          // Check for empty webpage content
+          if (!pageContent) {
+            console.log('No webpage content found. Sending empty string to API.');
+            pageContent = ''; // Set to empty string
           }
 
-          const aiMessageElement = addMessageToChat('ai', '');
+          // Initialize the AI bubble with 3 dots, and accumelated response
+          const aiMessageBubble = addMessageToChat('ai', '...');
           let accumulatedResponse = '';
 
           fetch('http://localhost:8000/ai-assistant', {
@@ -38,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              user_prompt: message,
+              user_prompt: userMessage,
               webpage_content: pageContent
             })
           })
@@ -57,8 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const chunk = decoder.decode(value, { stream: true });
                 accumulatedResponse += chunk;
-                aiMessageElement.innerHTML = marked.parse(accumulatedResponse);
-                chatHistory.scrollTop = chatHistory.scrollHeight;
+                aiMessageBubble.innerHTML = marked.parse(accumulatedResponse);
+                chatArea.scrollTop = chatArea.scrollHeight;
                 return readStream();
               });
             }
@@ -75,17 +90,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function addMessageToChat(sender, text) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', `${sender}-message`);
+    const messageBubble = document.createElement('div');
+    messageBubble.classList.add('message', `${sender}-message`);
 
     if (sender === 'ai') {
-      messageElement.innerHTML = marked.parse(text);
+      messageBubble.innerHTML = marked.parse(text);
     } else {
-      messageElement.textContent = text;
+      messageBubble.textContent = text;
     }
 
-    chatHistory.appendChild(messageElement);
-    chatHistory.scrollTop = chatHistory.scrollHeight;
-    return messageElement;
+    chatArea.appendChild(messageBubble);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    return messageBubble;
   }
 });
