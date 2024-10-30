@@ -20,6 +20,7 @@ if Config.ONLINE_DOWNLOAD:
 # Load models
 model_loader = ModelLoader()
 llm_model = model_loader.llm_model
+llm_tokenizer = model_loader.llm_tokenizer
 
 # Create the server
 ## This initializes the FastAPI app, which will handle incoming HTTP requests.
@@ -40,15 +41,14 @@ async def root():
 async def get_response(request: ChatInput):
     try:
         # print(request.user_prompt, request.webpage_content)
-        llm_model.warm_up()
-        llm_assistant = LLMService(llm_model, request.user_prompt, request.webpage_content)
+        llm_assistant = LLMService(llm_model, llm_tokenizer, request.user_prompt, request.webpage_content)
 
         prompt = llm_assistant.construct_prompt_template()
         assistant_response = llm_assistant.generate_response(prompt)
         print('-'*10)
-        print(assistant_response["replies"])
+        print(assistant_response)
         print('-'*10)
-        return ChatResponse(assistant_response=assistant_response["replies"][0])
+        return ChatResponse(assistant_response=assistant_response)
         # For echo test
         # return ChatResponse(assistant_response=f"{request.user_prompt}, {request.webpage_content}")
     except Exception as e:
@@ -57,20 +57,19 @@ async def get_response(request: ChatInput):
 # To test without server
 # def main(request: ChatInput):
 #     try:
-#         # print(request.user_prompt, request.webpage_content)
-#         llm_model.warm_up()
-#         llm_assistant = LLMService(llm_model, request["user_prompt"], None)
+#         llm_assistant = LLMService(llm_model, llm_tokenizer, request['user_prompt'], request['webpage_content'])
 
 #         prompt = llm_assistant.construct_prompt_template()
 #         assistant_response = llm_assistant.generate_response(prompt)
+#         print('-'*10)
 #         print(assistant_response)
-#         # return ChatResponse(assistant_response=assistant_response)
+#         print('-'*10)
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000)
-#    main({"user_prompt": "What is the main topic of this page?", "page_content": "This is the content of the webpage. It discusses various topics related to artificial intelligence and machine learning."})
+#    main({"user_prompt": "What is the main topic of this page?", "webpage_content": "This is the content of the webpage. It discusses various topics related to artificial intelligence and machine learning."})
 """
 curl -X POST http://0.0.0.0:8000/ai-assistant -H "Content-Type: application/json" -d '{"question": "What is the main topic of this page?", "page_content": "This is the content of the webpage. It discusses various topics related to artificial intelligence and machine learning."}'
 """

@@ -3,6 +3,7 @@ class Config:
     BATCH_SIZE = 8
 
     GENERATION_ARGS: dict = {
-        "max_tokens": 1024,
-        "temperature": 0.1,
+        "max_new_tokens": 1024,
+        "do_sample": True,
+        "temperature": 0.2,
     }
