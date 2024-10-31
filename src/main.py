@@ -59,7 +59,7 @@ async def get_response(request: ChatInput) -> StreamingResponse:
     """
     try:
         # Initialize LLM service with user input and webpage content
-        llm_assistant = LLMService(llm_model, llm_tokenizer, llm_streamer, 
+        llm_assistant = LLMService(llm_model, llm_tokenizer, llm_streamer,
                                    request.user_prompt, request.webpage_content)
 
         # Construct the prompt template
@@ -89,5 +89,6 @@ async def get_response(request: ChatInput) -> StreamingResponse:
 #         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8000)
+    # uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run("main:app", host="localhost", port=8000, reload=True)
     # main({"user_prompt": "What is the captital city of Egypt?", "webpage_content": ""})
