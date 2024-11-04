@@ -24,7 +24,7 @@ class ModelDownloader:
         self.model_repository: str = PathManager.MODEL_REPO
         self.model_dir_path: str = PathManager.MODEL_DIR_PATH
         self.target_file_name: str = PathManager.TARGET_FILE_NAME
-        self.model_name: str = os.path.basename(PathManager.TARGET_FILE_NAME)
+        self.model_name: str = PathManager.MODEL_NAME
         self.model_cache_dir: str = PathManager.MODEL_CACHE_DIR
         self.revision_id: str = PathManager.REVISION_ID
         self.model_snapshot_dir: str = os.path.join(self.model_cache_dir, "snapshots")
@@ -47,6 +47,25 @@ class ModelDownloader:
                 # Remove the folder
                 shutil.rmtree(os.path.join(self.model_snapshot_dir, snapshot), ignore_errors=True)
 
+    def _download_snapshot(self) -> None:
+        """Downloads the snapshot of the model, handling target_file_name if provided.
+        """
+        # Download with pattern or full snapshot based on target_file_name presence
+        allow_patterns = [f"{self.target_file_name}/*"] if self.target_file_name else None
+        snapshot_download(
+            repo_id=self.model_repository,
+            allow_patterns=allow_patterns,
+            revision=self.revision_id
+        )
+
+    def _get_src_dir(self) -> str:
+        """Returns the source directory for the model based on whether target_file_name is provided.
+        """
+        if self.target_file_name:
+            return os.path.join(self.model_snapshot_dir, self.revision_id, self.target_file_name)
+        else:
+            return os.path.join(self.model_snapshot_dir, self.revision_id)
+
     def download_model(self) -> None:
         """Downloads the model and moves it to the final directory (physical path).
 
@@ -61,11 +80,11 @@ class ModelDownloader:
         if os.path.exists(self.model_cache_dir):
             self.remove_old_revisions()
 
-        # Download the model to the temporary directory
-        snapshot_download(repo_id=self.model_repository, allow_patterns=[f"{self.target_file_name}/*"], revision=self.revision_id)
+        # Download the model to the temporary directory (cache)
+        self._download_snapshot()
 
-        # Define the source directory for the relevant model files in user cache
-        src_dir = os.path.join(self.model_snapshot_dir, self.revision_id, self.target_file_name)
+        # Get the source directory based on whether target_file_name is provided
+        src_dir = self._get_src_dir()
 
         # Move the relevant model files from user cache folder to the models directory in the project
         if os.path.exists(src_dir):

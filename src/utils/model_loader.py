@@ -19,17 +19,25 @@ class ModelLoader:
             # Load model
             self.load_models()
             self._initialized = True
+    
+    def _find_onnx_file(self) -> None:
+        """Finds the ONNX file in the model directory and stores its name in PathManager.
+        """
+        for root, _, files in os.walk(PathManager.MODEL_DIR_PATH):
+            for file in files:
+                if file.endswith('.onnx'):
+                    return file
 
     def load_models(self) -> None:
         """Loads the models and tokenizers.
         """
         if not self.llm_model:
+            onnx_file_name = self._find_onnx_file()
+            
             self.llm_model = ORTModelForCausalLM.from_pretrained(
                 PathManager.MODEL_DIR_PATH,
-                file_name=os.path.join(PathManager.MODEL_DIR_PATH,
-                                       "phi3-mini-4k-instruct-cpu-int4-rtn-block-32-acc-level-4.onnx"),
-                decoder_with_past_file_name=os.path.join(PathManager.MODEL_DIR_PATH,
-                                                         "phi3-mini-4k-instruct-cpu-int4-rtn-block-32-acc-level-4.onnx"),
+                file_name=os.path.join(PathManager.MODEL_DIR_PATH, onnx_file_name),
+                decoder_with_past_file_name=os.path.join(PathManager.MODEL_DIR_PATH, onnx_file_name),
                 use_merged=True,
                 trust_remote_code=True,
                 local_files_only=True,

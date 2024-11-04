@@ -15,7 +15,13 @@ from services.llm_service import LLMService
 
 # Initialize paths
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PathManager.initialize_paths(base_dir)
+# Initialize paths for any model
+PathManager.initialize_paths(
+    base_dir=base_dir,
+    model_repo="Orange-Innovation-Egypt/Qwen2.5-0.5B-Instruct-onnx-cpu", 
+    target_file=None,
+    revision_id="05be32a0cc6d9b323b8f7d5739ec7070af6e2408"
+)
 
 # Download models
 if Config.ONLINE_DOWNLOAD:
@@ -26,6 +32,9 @@ model_loader = ModelLoader()
 llm_model = model_loader.llm_model
 llm_tokenizer = model_loader.llm_tokenizer
 llm_streamer = model_loader.llm_streamer
+
+# Load services
+llm_assistant = LLMService(llm_model, llm_tokenizer, llm_streamer)
 
 # Create the server
 ## This initializes the FastAPI app, which will handle incoming HTTP requests.
@@ -58,19 +67,11 @@ async def get_response(request: ChatInput) -> StreamingResponse:
         StreamingResponse: A StreamingResponse object containing the assistant's response generated in chunks.
     """
     try:
-        # Initialize LLM service with user input and webpage content
-        llm_assistant = LLMService(llm_model, llm_tokenizer, llm_streamer,
-                                   request.user_prompt, request.webpage_content)
-
         # Construct the prompt template
-        prompt = llm_assistant.construct_prompt_template()
+        prompt = llm_assistant.construct_prompt_template(request.user_prompt)
 
         # Start streaming response
         return StreamingResponse(llm_assistant.generate_streaming_response(prompt), media_type="text/event-stream")
-
-        ## For single response
-        # assistant_response = llm_assistant.generate_response(prompt)
-        # return ChatResponse(assistant_response=assistant_response)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -78,9 +79,7 @@ async def get_response(request: ChatInput) -> StreamingResponse:
 ## To test without server
 # def main(request: ChatInput):
 #     try:
-#         llm_assistant = LLMService(llm_model, llm_tokenizer, llm_streamer, request['user_prompt'], request['webpage_content'])
-
-#         prompt = llm_assistant.construct_prompt_template()
+#         prompt = llm_assistant.construct_prompt_template(request["user_prompt"])
 #         assistant_response = llm_assistant.generate_response(prompt)
 #         print('-'*10)
 #         print(assistant_response)
@@ -89,6 +88,6 @@ async def get_response(request: ChatInput) -> StreamingResponse:
 #         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    # uvicorn.run(app, host="localhost", port=8000)
-    uvicorn.run("main:app", host="localhost", port=8000, reload=True)
+    uvicorn.run(app, host="localhost", port=8000)
+    # uvicorn.run("main:app", host="localhost", port=8000, reload=True)
     # main({"user_prompt": "What is the captital city of Egypt?", "webpage_content": ""})
