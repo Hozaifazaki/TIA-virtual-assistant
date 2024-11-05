@@ -5,6 +5,6 @@ class Config:
     # END_TOKENS = ["<|endoftext|>", "<|end|>", "</s>", "<|assistant|>"]
 
     GENERATION_ARGS: dict = {
-        "max_new_tokens": 1024,
+        "max_length": 8192,
         "do_sample": False,
     }
