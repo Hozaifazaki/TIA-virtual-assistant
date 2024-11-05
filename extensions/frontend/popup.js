@@ -1,49 +1,45 @@
+// Global variables
+let userMessage = "";
+
 document.addEventListener('DOMContentLoaded', () => {
   const sendButton = document.getElementById('sendBtn');
+  const clearButton = document.getElementById('clearBtn');
   const inputTextArea = document.getElementById('userInput');
   const chatArea = document.getElementById('chatHistory');
 
-  if (sendButton && inputTextArea && chatArea) {
-    // Add an event listener for send button
+  if (sendButton && clearButton && inputTextArea && chatArea) {
     sendButton.addEventListener('click', sendMessage);
-
-    // Add an event listener for input text area
+    clearButton.addEventListener('click', clearMessages);
     inputTextArea.addEventListener('keypress', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
       }
     });
-  } 
-  else {
+  } else {
     console.error('Required elements not found');
   }
 
   function sendMessage() {
-    // Define new variable 
-    const userMessage = inputTextArea.value.trim();
-    
-    if (userMessage) {
-      // Add the user message to the chat area
+    const newMessage = inputTextArea.value.trim();
+
+    if (newMessage && userMessage === "") {
+      userMessage = newMessage;
       addMessageToChat('user', userMessage);
-      
-      // Clear and renitialize the input text area 
       inputTextArea.value = '';
-      
-      chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {action: "getPageContent"}, (pageContent) => {
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "getPageContent" }, (pageContent) => {
           if (chrome.runtime.lastError) {
             console.error('Error getting page content:', chrome.runtime.lastError);
-            addMessageToChat('ai', 'Failed to get page content. Continue without scrapping');
+            addMessageToChat('ai', 'Failed to get page content. Continue without scraping');
           }
-          
-          // Check for empty webpage content
+
           if (!pageContent) {
             console.log('No webpage content found. Sending empty string to API.');
             pageContent = ''; // Set to empty string
           }
 
-          // Initialize the AI bubble with 3 dots, and accumelated response
           const aiMessageBubble = addMessageToChat('ai', '...');
           let accumulatedResponse = '';
 
@@ -80,9 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return readStream();
           })
+          .then(() => {
+            userMessage = ""; // Reset after successful completion
+          })
           .catch(error => {
             console.error('Error:', error);
             addMessageToChat('ai', `An error occurred: ${error.message}. Please try again.`);
+            userMessage = ""; // Reset even if there's an error
           });
         });
       });
@@ -102,5 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
     chatArea.appendChild(messageBubble);
     chatArea.scrollTop = chatArea.scrollHeight;
     return messageBubble;
+  }
+
+  function clearMessages() {
+    chatArea.innerHTML = '';
   }
 });

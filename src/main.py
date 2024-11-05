@@ -9,7 +9,7 @@ from configs.config import Config
 from utils.model_downloader import ModelDownloader
 from utils.model_loader import ModelLoader
 from utils.path_manager import PathManager
-from schemas.chat_models import ChatInput, ChatResponse
+from schemas.chat_models import ChatInput
 from services.llm_service import LLMService
 
 
@@ -18,7 +18,7 @@ base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Initialize paths for any model
 PathManager.initialize_paths(
     base_dir=base_dir,
-    model_repo="Orange-Innovation-Egypt/Qwen2.5-0.5B-Instruct-onnx-cpu", 
+    model_repo="Orange-Innovation-Egypt/Qwen2.5-0.5B-Instruct-onnx-cpu",
     target_file=None,
     revision_id="05be32a0cc6d9b323b8f7d5739ec7070af6e2408"
 )
